@@ -1,5 +1,7 @@
 const LABEL = { pass: "통과", warn: "주의", risk: "위험" };
 
+const CHECKLIST_URL = new URL("../data/checklist.json", import.meta.url);
+
 const RISK_PATTERNS = [
   { re: /(api[_-]?key|secret|password|passwd|token|private[_-]?key)\s*[:=]/i, q: "sec-1", sev: "risk", fix: "하드코딩된 비밀값·토큰을 제거하고 환경변수/비밀저장소로 옮기세요." },
   { re: /(innerHTML|dangerouslySetInnerHTML|document\.write)\s*[=(]/i, q: "sec-2", sev: "risk", fix: "HTML 삽입 대신 textContent/안전한 템플릿을 쓰고 입력을 이스케이프하세요." },
@@ -15,29 +17,27 @@ const PASS_HINTS = [
   { re: /\b(test|describe\(|it\(|pytest|npm test)\b/i, q: "mnt-3", sev: "pass" }
 ];
 
-const MOBILE_STACK_RE = /android|ios|react native|flutter|swift|kotlin/i;
-
-function analyzeHeuristics(text) {
-  const hasDiff = /(\bdiff\b|\bpatch\b|\+\+\+\s|\-\-\-\s|^@@ |\bPR\s*#|\bpull request\b)/im.test(text);
-  const hasVerify = /\b(npm test|pytest|cargo test|go test|curl |jest|vitest|playwright|검증|테스트)\b/i.test(text)
-    || /\b(console\.(log|error)|logger\.|stack trace)\b/i.test(text);
-  const outOfScope = /\b(login|oauth|payment|stripe|nohu-dashboard|drive oauth|자동\s*PR|automerge)\b/i.test(text);
-  return [
-    { label: "디프 유무", ok: hasDiff, detail: hasDiff ? "디프/패치/PR 흔적이 보입니다." : "디프·패치·PR 흔적이 거의 없습니다. 변경 범위를 붙이면 검수가 쉬워집니다." },
-    { label: "검증 명령/로그 유무", ok: hasVerify, detail: hasVerify ? "테스트·검증 명령 또는 로그 흔적이 있습니다." : "검증 명령/로그가 안 보입니다. README에 실행·확인 한 줄을 남기세요." },
-    { label: "범위 밖 변경 의심", ok: !outOfScope, detail: outOfScope ? "로그인·결제·다른 앱 합치기 등 범위 밖 신호가 있습니다." : "범위 밖 신호는 크게 안 보입니다. (휴리스틱)" }
-  ];
+function validateChecks(data) {
+  if (!data || !Array.isArray(data.axes) || data.axes.length === 0) {
+    throw new Error("checklist.json 형식이 올바르지 않습니다.");
+  }
+  for (const axis of data.axes) {
+    if (!axis || typeof axis.id !== "string" || typeof axis.name !== "string" || !Array.isArray(axis.questions)) {
+      throw new Error("checklist.json 형식이 올바르지 않습니다.");
+    }
+    for (const q of axis.questions) {
+      if (!q || typeof q.id !== "string" || typeof q.text !== "string") {
+        throw new Error("checklist.json 형식이 올바르지 않습니다.");
+      }
+    }
+  }
+  return data;
 }
 
-function withStackHint(heuristics, stack, text) {
-  if (stack === "mobile" && !MOBILE_STACK_RE.test(text)) {
-    heuristics.push({
-      label: "스택 힌트",
-      ok: false,
-      detail: "모바일로 선택했지만 모바일 스택 키워드가 적습니다. 플랫폼을 본문에 명시하세요."
-    });
-  }
-  return heuristics;
+async function loadChecks(url = CHECKLIST_URL) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("checklist.json " + res.status);
+  return validateChecks(await res.json());
 }
 
 function scoreQuestions(checks, text) {
@@ -85,10 +85,11 @@ function topFixes(scores, heuristics) {
 
 export {
   LABEL,
+  CHECKLIST_URL,
   RISK_PATTERNS,
   PASS_HINTS,
-  analyzeHeuristics,
-  withStackHint,
+  validateChecks,
+  loadChecks,
   scoreQuestions,
   topFixes
 };

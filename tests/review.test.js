@@ -4,15 +4,14 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   LABEL,
-  analyzeHeuristics,
   scoreQuestions,
   topFixes,
-  withStackHint
-} from "../src/js/review.js";
-import { validateChecks } from "../src/js/checks-loader.js";
+  validateChecks
+} from "../src/lib/evaluate.js";
+import { analyzeHeuristics, withStackHint } from "../src/lib/heuristics.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const checks = JSON.parse(readFileSync(join(root, "data/checks.json"), "utf8"));
+const checks = JSON.parse(readFileSync(join(root, "src/data/checklist.json"), "utf8"));
 
 let passed = 0;
 let failed = 0;
@@ -35,7 +34,7 @@ test("labels are 통과/주의/위험", () => {
   assert.equal(LABEL.risk, "위험");
 });
 
-test("checks.json validates and has 4 axes × 3 questions", () => {
+test("checklist.json validates and has 4 axes × 3 questions", () => {
   const data = validateChecks(checks);
   assert.equal(data.axes.length, 4);
   for (const axis of data.axes) {
@@ -165,7 +164,7 @@ test("risk outranks warn when filling remaining topFixes", () => {
   assert.ok(fixes.includes(scores["sec-1"].fix));
 });
 
-test("validateChecks from checks-loader rejects empty axes", () => {
+test("validateChecks from evaluate rejects empty axes", () => {
   assert.throws(() => validateChecks({ axes: [] }), /형식/);
   assert.throws(() => validateChecks({}), /형식/);
 });
