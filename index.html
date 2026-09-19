@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>vibe-review — 30분 검수</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <h1>vibe-review</h1>
+    <p class="subtitle">AI가 짠 웹/모바일 코드를 붙여 넣고, 약 30분용 검수 결과를 봅니다. (로컬·규칙 기반, 자동 수정 없음)</p>
+  </header>
+  <main>
+    <section class="panel">
+      <h2>입력</h2>
+      <label class="field">
+        <span>스택</span>
+        <select id="stack">
+          <option value="web">웹</option>
+          <option value="mobile">모바일</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>코드 / 설명</span>
+        <textarea id="source" rows="16" placeholder="코드 또는 설명 텍스트를 붙여 넣으세요."></textarea>
+      </label>
+      <button type="button" id="runBtn" class="primary">검수 실행</button>
+    </section>
+    <section class="panel" id="heuristicsPanel" hidden>
+      <h2>추가 체크 (규칙 기반)</h2>
+      <ul id="heuristics" class="heuristics"></ul>
+    </section>
+    <section class="panel" id="resultsPanel" hidden>
+      <h2>축별 결과</h2>
+      <div id="axes"></div>
+    </section>
+    <section class="panel" id="fixesPanel" hidden>
+      <h2>다음에 고칠 것 3개</h2>
+      <ol id="fixes"></ol>
+    </section>
+  </main>
+  <footer class="site-footer">
+    <p>로그인·결제·Drive·대시보드 합치기·자동 PR 수정 없음 · 문항은 임시 JSON</p>
+  </footer>
+  <script src="js/app.js" type="module"></script>
+</body>
+</html>
