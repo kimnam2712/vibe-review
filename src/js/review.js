@@ -15,6 +15,8 @@ const PASS_HINTS = [
   { re: /\b(test|describe\(|it\(|pytest|npm test)\b/i, q: "mnt-3", sev: "pass" }
 ];
 
+const MOBILE_STACK_RE = /android|ios|react native|flutter|swift|kotlin/i;
+
 function analyzeHeuristics(text) {
   const hasDiff = /(\bdiff\b|\bpatch\b|\+\+\+\s|\-\-\-\s|^@@ |\bPR\s*#|\bpull request\b)/im.test(text);
   const hasVerify = /\b(npm test|pytest|cargo test|go test|curl |jest|vitest|playwright|검증|테스트)\b/i.test(text)
@@ -25,6 +27,17 @@ function analyzeHeuristics(text) {
     { label: "검증 명령/로그 유무", ok: hasVerify, detail: hasVerify ? "테스트·검증 명령 또는 로그 흔적이 있습니다." : "검증 명령/로그가 안 보입니다. README에 실행·확인 한 줄을 남기세요." },
     { label: "범위 밖 변경 의심", ok: !outOfScope, detail: outOfScope ? "로그인·결제·다른 앱 합치기 등 범위 밖 신호가 있습니다." : "범위 밖 신호는 크게 안 보입니다. (휴리스틱)" }
   ];
+}
+
+function withStackHint(heuristics, stack, text) {
+  if (stack === "mobile" && !MOBILE_STACK_RE.test(text)) {
+    heuristics.push({
+      label: "스택 힌트",
+      ok: false,
+      detail: "모바일로 선택했지만 모바일 스택 키워드가 적습니다. 플랫폼을 본문에 명시하세요."
+    });
+  }
+  return heuristics;
 }
 
 function scoreQuestions(checks, text) {
@@ -70,45 +83,12 @@ function topFixes(scores, heuristics) {
   return fixes.slice(0, 3);
 }
 
-function badge(sev) {
-  return `<span class="badge ${sev}">${LABEL[sev]}</span>`;
-}
-
-async function main() {
-  const checks = await fetch("data/checks.json").then((r) => {
-    if (!r.ok) throw new Error("checks.json " + r.status);
-    return r.json();
-  });
-  document.getElementById("runBtn").addEventListener("click", () => {
-    const stack = document.getElementById("stack").value;
-    const text = document.getElementById("source").value;
-    const heuristics = analyzeHeuristics(text);
-    if (stack === "mobile" && !/android|ios|react native|flutter|swift|kotlin/i.test(text)) {
-      heuristics.push({ label: "스택 힌트", ok: false, detail: "모바일로 선택했지만 모바일 스택 키워드가 적습니다. 플랫폼을 본문에 명시하세요." });
-    }
-    const scores = scoreQuestions(checks, text);
-
-    document.getElementById("heuristics").innerHTML = heuristics
-      .map((h) => `<li><span class="tag">${h.ok ? "통과" : "주의"}</span>${h.label} — ${h.detail}</li>`)
-      .join("");
-    document.getElementById("heuristicsPanel").hidden = false;
-
-    document.getElementById("axes").innerHTML = checks.axes.map((axis) => {
-      const rows = axis.questions.map((q) => {
-        const s = scores[q.id];
-        return `<div class="q-row"><div>${q.text}</div>${badge(s.sev)}</div>`;
-      }).join("");
-      return `<div class="axis"><h3>${axis.name}</h3>${rows}</div>`;
-    }).join("");
-    document.getElementById("resultsPanel").hidden = false;
-
-    document.getElementById("fixes").innerHTML = topFixes(scores, heuristics)
-      .map((f) => `<li>${f}</li>`).join("");
-    document.getElementById("fixesPanel").hidden = false;
-  });
-}
-
-main().catch((e) => {
-  console.error(e);
-  alert("data/checks.json을 불러오지 못했습니다. README대로 로컬 서버로 열어 주세요.");
-});
+export {
+  LABEL,
+  RISK_PATTERNS,
+  PASS_HINTS,
+  analyzeHeuristics,
+  withStackHint,
+  scoreQuestions,
+  topFixes
+};

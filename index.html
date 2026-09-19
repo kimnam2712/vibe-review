@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; object-src 'none'; base-uri 'self'" />
   <title>vibe-review — 30분 검수</title>
-  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="src/css/styles.css" />
 </head>
 <body>
   <header class="site-header">
@@ -12,37 +13,38 @@
     <p class="subtitle">AI가 짠 웹/모바일 코드를 붙여 넣고, 약 30분용 검수 결과를 봅니다. (로컬·규칙 기반, 자동 수정 없음)</p>
   </header>
   <main>
-    <section class="panel">
-      <h2>입력</h2>
-      <label class="field">
+    <p id="loadError" class="error" hidden role="alert"></p>
+    <section class="panel" aria-labelledby="input-heading">
+      <h2 id="input-heading">입력</h2>
+      <label class="field" for="stack">
         <span>스택</span>
-        <select id="stack">
+        <select id="stack" name="stack">
           <option value="web">웹</option>
           <option value="mobile">모바일</option>
         </select>
       </label>
-      <label class="field">
+      <label class="field" for="source">
         <span>코드 / 설명</span>
-        <textarea id="source" rows="16" placeholder="코드 또는 설명 텍스트를 붙여 넣으세요."></textarea>
+        <textarea id="source" name="source" rows="16" placeholder="코드 또는 설명 텍스트를 붙여 넣으세요."></textarea>
       </label>
       <button type="button" id="runBtn" class="primary">검수 실행</button>
     </section>
-    <section class="panel" id="heuristicsPanel" hidden>
-      <h2>추가 체크 (규칙 기반)</h2>
-      <ul id="heuristics" class="heuristics"></ul>
+    <section class="panel" id="heuristicsPanel" hidden tabindex="-1" aria-labelledby="heuristics-heading">
+      <h2 id="heuristics-heading">추가 체크 (규칙 기반)</h2>
+      <ul id="heuristics" class="heuristics" aria-live="polite"></ul>
     </section>
-    <section class="panel" id="resultsPanel" hidden>
-      <h2>축별 결과</h2>
+    <section class="panel" id="resultsPanel" hidden aria-labelledby="results-heading">
+      <h2 id="results-heading">축별 결과</h2>
       <div id="axes"></div>
     </section>
-    <section class="panel" id="fixesPanel" hidden>
-      <h2>다음에 고칠 것 3개</h2>
+    <section class="panel" id="fixesPanel" hidden aria-labelledby="fixes-heading">
+      <h2 id="fixes-heading">다음에 고칠 것 3개</h2>
       <ol id="fixes"></ol>
     </section>
   </main>
   <footer class="site-footer">
     <p>로그인·결제·Drive·대시보드 합치기·자동 PR 수정 없음 · 문항은 임시 JSON</p>
   </footer>
-  <script src="js/app.js" type="module"></script>
+  <script src="src/js/app.js" type="module"></script>
 </body>
 </html>

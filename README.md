@@ -4,11 +4,36 @@ AI가 짠 웹/모바일 코드를 붙여 넣고, 약 30분용 검수 결과(통�
 
 ## 실행
 
+ES 모듈이라 `file://`로 열면 `data/checks.json`을 불러오지 못합니다. 로컬 정적 서버로 엽니다.
+
 ```bash
-cd /workspace/vibe-review && python3 -m http.server 8790
+cd /workspace/vibe-review && python3 -m http.server 8765
 ```
 
-브라우저: http://127.0.0.1:8790/
+브라우저: http://127.0.0.1:8765/
+
+GitHub Pages는 저장소 루트(`/`) 기준 상대 경로로 동작합니다 (`.nojekyll`).
+
+## 테스트
+
+```bash
+node tests/review.test.js
+```
+
+## 구조
+
+```
+vibe-review/
+  index.html
+  src/css/styles.css
+  src/js/app.js
+  src/js/review.js
+  src/js/checks-loader.js
+  data/checks.json
+  tests/review.test.js
+  README.md
+  .nojekyll
+```
 
 ## 범위
 
